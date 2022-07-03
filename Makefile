@@ -1,7 +1,7 @@
 CPP = g++
 OPTS =  -lglut -lGL
 
-all:
+all: 
 	$(CPP) main.cpp -o main $(OPTS)
 
 clean:
