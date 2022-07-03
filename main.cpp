@@ -1,5 +1,6 @@
 #include <iostream>
 #include <unistd.h>
+#include <cstring>
 
 #include "GL/freeglut.h"
 #include "GL/gl.h"
@@ -7,16 +8,21 @@
 // array size
 const int n = 200;
 
+// array range
 const int max_number = 1000;
 
 // maximum recorded steps
-const int max_steps = 10000;
+const int max_steps = 10*n*n;
 
+// array to sort 
 int array[n] ;
+
+// array_steps (max_steps, n) to record sorting steps
 int array_steps[max_steps][n];
 
 int step = 0;
 
+// print array to console
 void print_array(int array[], int n){
     for (int i = 0; i < n; i++)
     {
@@ -26,6 +32,38 @@ void print_array(int array[], int n){
         
 }
 
+// get max of array
+int maximum(int array[], int n){
+    int max = array[0];
+
+    for (int i = 0; i < n; i++)
+    {
+        if (max < array[i]){
+            max = array[i];
+        }
+    }
+
+    return max;
+    
+}
+
+// get min of array
+int minimum(int array[], int n){
+    int min = array[0];
+
+    for (int i = 0; i < n; i++)
+    {
+        if (min > array[i]){
+            min = array[i];
+        }
+    }
+
+    return min;
+    
+}
+
+
+// bubble sort algorithm
 void bubble_sort(int array[], int n){
     int temp;
 
@@ -52,6 +90,7 @@ void bubble_sort(int array[], int n){
     
 }
 
+// selection sort algorithm
 void selection_sort(int array[], int n){
     int min_idx; 
     int temp;
@@ -78,6 +117,7 @@ void selection_sort(int array[], int n){
     }
 }
 
+// insertion sort algorithm
 void insertion_sort(int array[], int n){
     int key;
     int j;
@@ -111,6 +151,7 @@ void insertion_sort(int array[], int n){
     
 }
 
+// merge helper function
 void merge(int array[], int l, int m, int r){
     int nl, nr;
     nl = m-l+1; 
@@ -179,6 +220,7 @@ void merge(int array[], int l, int m, int r){
 
 }
 
+// merge sort algorithm
 void merge_sort(int array[], int l, int r) {
     int m;
 
@@ -190,6 +232,7 @@ void merge_sort(int array[], int l, int r) {
     }
 }
 
+// partition helper function
 int partition(int array[], int low, int high) 
 { 
     int pivot = array[high];   
@@ -227,6 +270,7 @@ int partition(int array[], int low, int high)
     return (i + 1); 
 } 
 
+// quick sort algorithm
 void quick_sort(int array[], int low, int high) 
 { 
     if (low < high) 
@@ -238,38 +282,50 @@ void quick_sort(int array[], int low, int high)
     } 
 } 
 
+// counting sort algorithm
+void count_sort(int array[], int n) {
+    int max = maximum(array, n);
+    int min = minimum(array, n);
+    int range = max - min + 1;
 
-int maximum(int array[], int n){
-    int max = array[0];
+    int count[range];
+    int output[n];
 
-    for (int i = 0; i < n; i++)
-    {
-        if (max < array[i]){
-            max = array[i];
-        }
+
+    for (int i = 0; i < range; i++){
+        count[i] = 0;
     }
 
-    return max;
-    
-}
-
-int minimum(int array[], int n){
-    int min = array[0];
-
-    for (int i = 0; i < n; i++)
-    {
-        if (min > array[i]){
-            min = array[i];
-        }
+    for (int i = 0; i < n; i++){
+        count[array[i] - min] = count[array[i] - min] + 1;
     }
 
-    return min;
-    
+
+    for (int i = 1; i < range; i++){
+        count[i] += count[i - 1];
+    }
+
+    for (int i = n - 1; i >= 0; i--) {
+        output[count[array[i] - min] - 1] = array[i];
+        count[array[i] - min]--;
+    }
+
+    for (int i = 0; i < n; i++){
+        array[i] = output[i];
+
+        for (int kk = 0; kk < n; kk++)
+        {
+            array_steps[step][kk] = array[kk];
+        }
+        step = step + 1; 
+    }
 }
 
-void draw_array(){
 
-    // black background      
+// draw array sorting opengl function
+void draw_array_sorting(){
+
+    glClear(GL_COLOR_BUFFER_BIT);
     glClearColor(0, 0, 0, 0);
 
     int max = maximum(array, n);
@@ -320,8 +376,9 @@ void draw_array(){
                 glVertex2f(end_x, end_y);
 
             glEnd();
+            glFlush();
 
-            glFlush(); 
+
         }
     
     }
@@ -330,26 +387,45 @@ void draw_array(){
 
 int main(int argc, char **argv){
 
+    if (argc == 1){
+        return 1;
+    }
+
+    // init array with random values
     for (int i = 0; i < n; i++)
     {
         array[i] = rand()%max_number;
     }
 
+    char * sorting_algorithm = argv[1];
 
-    //selection_sort(array, n);
-    //bubble_sort(array, n);
-    //insertion_sort(array, n);
-    merge_sort(array, 0, n-1);
-    //quick_sort(array, 0, n-1);
- 
-    //print_array(array, n);
+    if (strcmp(sorting_algorithm, "bubble-sort") == 0){
+        bubble_sort(array, n);
+    }else if (strcmp(sorting_algorithm, "quick-sort") == 0){
+        quick_sort(array, 0, n-1);
+    }else if (strcmp(sorting_algorithm, "selection-sort") == 0){
+        selection_sort(array, n);
+    }else if (strcmp(sorting_algorithm, "insertion-sort") == 0){
+        insertion_sort(array, n);
+    }else if (strcmp(sorting_algorithm, "merge-sort") == 0){
+        merge_sort(array, 0, n-1);
+    }else if (strcmp(sorting_algorithm, "count-sort") == 0){
+        count_sort(array, n);
+    } else {
+        return 1;
+    }
 
+
+    // opengl calls
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_SINGLE);
-    glutInitWindowSize(1200, 800);
+    glutInitWindowSize(1280, 720);
     glutInitWindowPosition(100, 100);
-    glutCreateWindow("OpenGL - Creating a triangle");
-    glutDisplayFunc(draw_array);
+    glutCreateWindow(sorting_algorithm);
+
+    usleep(1e+5);
+    
+    glutDisplayFunc(draw_array_sorting);
     glutMainLoop();
 }
 
