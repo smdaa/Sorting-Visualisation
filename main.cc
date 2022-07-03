@@ -5,7 +5,9 @@
 #include "GL/gl.h"
 
 // array size
-const int n = 130;
+const int n = 200;
+
+const int max_number = 1000;
 
 // maximum recorded steps
 const int max_steps = 10000;
@@ -109,6 +111,134 @@ void insertion_sort(int array[], int n){
     
 }
 
+void merge(int array[], int l, int m, int r){
+    int nl, nr;
+    nl = m-l+1; 
+    nr = r-m;
+
+    int larr[nl], rarr[nr];
+
+    for(int i = 0; i<nl; i++){
+        larr[i] = array[l+i];
+    }
+
+    for (int j = 0; j < nr; j++)
+    {
+        rarr[j] = array[m+1+j];
+    }
+    
+    int i = 0;
+    int j = 0;
+    int k = l;
+
+    while(i < nl && j<nr) {
+        if(larr[i] <= rarr[j]) {
+            array[k] = larr[i];
+            i++;
+        } else {
+            array[k] = rarr[j];
+            j++;
+        }
+
+        for (int kk = 0; kk < n; kk++)
+        {
+            array_steps[step][kk] = array[kk];
+        }
+        step = step + 1; 
+
+        k++;
+    }
+
+    while(i<nl) { 
+        array[k] = larr[i];
+
+        for (int kk = 0; kk < n; kk++)
+        {
+            array_steps[step][kk] = array[kk];
+        }
+        step = step + 1; 
+
+
+        i++; 
+        k++;
+    }
+
+    while(j<nr) {
+        array[k] = rarr[j];
+        
+        for (int kk = 0; kk < n; kk++)
+        {
+            array_steps[step][kk] = array[kk];
+        }
+        step = step + 1; 
+
+
+        j++; 
+        k++;
+    }
+
+}
+
+void merge_sort(int array[], int l, int r) {
+    int m;
+
+    if(l < r) {
+        int m = l+(r-l)/2;
+        merge_sort(array, l, m);
+        merge_sort(array, m+1, r);
+        merge(array, l, m, r);
+    }
+}
+
+int partition(int array[], int low, int high) 
+{ 
+    int pivot = array[high];   
+    int i = (low - 1);   
+    int temp;
+   
+    for (int j = low; j <= high- 1; j++) 
+    { 
+        if (array[j] <= pivot) 
+        { 
+            i++;   
+
+            temp = array[i];
+            array[i] = array[j];
+            array[j] = temp;
+
+            for (int kk = 0; kk < n; kk++)
+            {
+                array_steps[step][kk] = array[kk];
+            }
+            step = step + 1; 
+        } 
+    } 
+    
+    temp = array[i+1];
+    array[i+1] = array[high];
+    array[high] = temp;
+
+    for (int kk = 0; kk < n; kk++)
+    {
+        array_steps[step][kk] = array[kk];
+    }
+    step = step + 1; 
+
+    return (i + 1); 
+} 
+
+void quick_sort(int array[], int low, int high) 
+{ 
+    if (low < high) 
+    { 
+        int pivot = partition(array, low, high); 
+   
+        quick_sort(array, low, pivot - 1); 
+        quick_sort(array, pivot + 1, high); 
+    } 
+} 
+
+
 int maximum(int array[], int n){
     int max = array[0];
 
@@ -191,8 +321,6 @@ void draw_array(){
 
             glEnd();
 
-            usleep(1e+2);
-
             glFlush(); 
         }
     
@@ -204,13 +332,17 @@ int main(int argc, char **argv){
 
     for (int i = 0; i < n; i++)
     {
-        array[i] = n-i;
+        array[i] = rand()%max_number;
     }
 
 
     //selection_sort(array, n);
     //bubble_sort(array, n);
     //insertion_sort(array, n);
+    merge_sort(array, 0, n-1);
+    //quick_sort(array, 0, n-1);
+ 
+    //print_array(array, n);
 
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_SINGLE);
